@@ -143,7 +143,7 @@ public class CommitLogReader
             }
         });
         if (files == null || files.length == 0) {
-            logger.info("No commitlog files found; skipping replay");
+            logger.info("No commitlog files found in "+ directory +"; skipping replay");
             return;
         }
 
@@ -372,16 +372,20 @@ modificationsCount int
                     Mutation m = null;
                     try {
                         DataInputStream dis = new DataInputStream(new ByteArrayInputStream(bytes));
-                        m = deserialize(dis);
+                        m = deserialize(dis);                        
                     } catch (Exception e) {
                         invalidCount++;
                     }
 
                     if (m != null) {
                         if (m.ts < earliest) {
+                        	//debug trace
+                        	//logger.debug("discarded "+ m.key +": "+m.ts+" < "+earliest);
                             discardedCount++;
                             continue;
                         }
+                    	//debug trace
+                        //logger.debug("Accepted "+ m.key +": "+m.ts+" > "+earliest);
                         changed(m.table, m.key);
                         count++;
 

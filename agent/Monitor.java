@@ -29,10 +29,10 @@ public class Monitor implements Runnable {
                         continue;
                     }
                     int flowP = flow.checkAndClearLastBlockSize();
-                    tables = tables + flow.banner() + ": " + flowP + "    ";
+                    tables = tables + flow.banner().toString() + ": " + flowP + "    ";
                     processed += flowP;
+                    if (processed>1) logger.info("Status: " + processed + " rows       / " + tables);
                 }
-                logger.info("Last 1s: " + processed + " rows       / " + tables);
             }
         } catch (Throwable t) {
             logger.error("Exception in monitor:", t);

@@ -20,4 +20,13 @@ public class PostgresWriterFile extends PostgresWriter implements RowWriter {
         writer.close();
     }
 
+    public void commit() throws Exception {
+    }
+
+	@Override
+	public void execute(long timestamp) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

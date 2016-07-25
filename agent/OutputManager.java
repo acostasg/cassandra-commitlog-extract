@@ -7,55 +7,87 @@ public class OutputManager {
 
     private static OutputManager instance = null;
 
-    private Map<String,RowWriter> writers;
+    private Map<String,LinkedList<RowWriter>> writers;
 
-    private Class writerClass;
+    private List<Class> writersClasses;
     private Filter filter;
+    private static long dateUniqueCSV;
 
-    private OutputManager(String writerClassName, Filter filter) throws Exception {
-        writers = new HashMap<String,RowWriter>();
-        writerClass = Class.forName(writerClassName);
+    private OutputManager(List<String> writersClassNames, Filter filter) throws Exception {
+        writers = new HashMap<String,LinkedList<RowWriter>>();
+        writersClasses = new LinkedList<Class>();
+        for (String className : writersClassNames) {
+            writersClasses.add(Class.forName(className));
+        }
         this.filter = filter;
     }
 
-    public static void init(String writerClassName, Filter filter) throws Exception {
-        OutputManager.instance = new OutputManager(writerClassName, filter);
+    public static void init(List<String> writersClassNames, Filter filter) throws Exception {
+        OutputManager.instance = new OutputManager(writersClassNames, filter);  
+        //for single model csv file text
+    	java.util.Date date = new java.util.Date();
+        long timeStamp = date.getTime();
+        OutputManager.dateUniqueCSV = timeStamp;
     }
 
-    private RowWriter touchWriter(String table) throws Exception {
-        RowWriter writer = null;
+    private List<RowWriter> touchWriters(String table) throws Exception {
+        LinkedList<RowWriter> returnWriters = null;
         synchronized(this) {
             if (!writers.containsKey(table)) {
-                writer = (RowWriter)writerClass.newInstance();
-                writer.init(table);
-                writers.put(table, writer);
+                returnWriters = new LinkedList<RowWriter>();
+                for (Class klass : writersClasses) {
+                    RowWriter writer = (RowWriter)klass.newInstance();                    
+                    writer.init(table);
+                    writer.execute(OutputManager.dateUniqueCSV);                    	
+                    returnWriters.add(writer);
+                }
+                writers.put(table, returnWriters);
             } else {
-                writer = writers.get(table);
+                returnWriters = writers.get(table);
             }
         }
-        return writer;
+        return returnWriters;
     }
 
     private void closeAllI() throws Exception {
         synchronized(this) {
-            for (Map.Entry<String, RowWriter> kv : writers.entrySet()) {
-                RowWriter writer = kv.getValue();
-                writer.close();
+            for (Map.Entry<String, LinkedList<RowWriter>> kv : writers.entrySet()) {
+                List<RowWriter> cwriters = kv.getValue();
+                for (RowWriter writer : cwriters) {
+                    synchronized(writer) {
+                        writer.commit();
+                        writer.close();
+                    }
+                }
             }
         }
     }
 
     public static void write(RowBlock block) throws Exception {
-        RowWriter writer = OutputManager.instance.touchWriter(block.table);
-        synchronized(writer) {
-            writer.write(block, OutputManager.instance.filter);
+        List<RowWriter> writers = OutputManager.instance.touchWriters(block.table);
+        for (RowWriter writer : writers) {
+            synchronized(writer) {
+                writer.write(block, OutputManager.instance.filter);
+            }
         }
     }
 
     public static void close(String table) throws Exception {
-        RowWriter writer = OutputManager.instance.touchWriter(table);
-        synchronized(writer) {
-            writer.close();
+        List<RowWriter> writers = OutputManager.instance.touchWriters(table);
+        for (RowWriter writer : writers) {
+            synchronized(writer) {
+                writer.commit();
+                writer.close();
+            }
+        }
+    }
+
+    public static void commit(String table) throws Exception {
+        List<RowWriter> writers = OutputManager.instance.touchWriters(table);
+        for (RowWriter writer : writers) {
+            synchronized(writer) {
+                writer.commit();
+            }
         }
     }
 

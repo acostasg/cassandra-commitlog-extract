@@ -7,6 +7,7 @@ public class OracleWriterFile extends OracleWriter implements RowWriter {
     private FileWriter writer;
 
     public void init(String table) throws Exception {
+    	
         this.table = table;
         //this.bulkMode = ConfManager.getGlobal("postgresBulkMode").equals("true");
         writer = new FileWriter(table, "oracle.sql", 8*1024*1024);
@@ -24,5 +25,20 @@ public class OracleWriterFile extends OracleWriter implements RowWriter {
     public void close() throws Exception {
         writer.close();
     }
+
+    public void commit() throws Exception {
+        StringBuilder sb = new StringBuilder("");
+        List<String> l = mergeTempTable();
+        for (String s : l) {
+            sb.append(s);
+        }
+        writer.write(sb.toString());
+    }
+
+	@Override
+	public void execute(long timestamp) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
 
 }

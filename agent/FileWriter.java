@@ -3,7 +3,11 @@ package agent;
 import java.io.*;
 import java.util.*;
 
+import org.apache.log4j.Logger;
+
 public class FileWriter {
+	
+	protected static Logger logger = Logger.getLogger(FileWriter.class.getName());
 
     private String fileName;
     private String extension;
@@ -26,8 +30,11 @@ public class FileWriter {
     private void newFragment() throws Exception {
         close();
         fragment++;
-        out = new FileOutputStream(fileName + "-" + String.format("%05d", fragment) + "." + extension);
+        String name = new String();
+        name = fileName + "_" + String.format("%05d", fragment) + "." + extension;
+        out = new FileOutputStream(name, true);        
         bytes = 0;
+        logger.debug(" The create file in "+ name);
     }
 
     private void prepareFragment() throws Exception {
@@ -47,5 +54,13 @@ public class FileWriter {
         out.write(b);
         bytes += b.length;
     }
+    
+    public String getFileName() throws Exception {
+    	return this.fileName;
+    }    
+    
+    public String getExtension() throws Exception {
+    	return this.extension;
+    }    
 
 }

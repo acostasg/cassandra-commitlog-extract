@@ -23,4 +23,10 @@ public class TableDumper implements RowGatherer {
         // nothing to close, CassandraManager is shared and keeps open connections
     }
 
+	@Override
+	public void renameCSVFile() throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

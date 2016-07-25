@@ -52,6 +52,8 @@ public class CassandraManager {
         String wc = (String)conf.get("writeConsistency");
         if (rc.equals("ALL")) {
             ccl.setDefaultReadConsistencyLevel(HConsistencyLevel.ALL);
+        } else if (rc.equals("LOCAL_QUORUM")) {
+            ccl.setDefaultReadConsistencyLevel(HConsistencyLevel.LOCAL_QUORUM);
         } else if (rc.equals("QUORUM")) {
             ccl.setDefaultReadConsistencyLevel(HConsistencyLevel.QUORUM);
         } else {
@@ -59,6 +61,8 @@ public class CassandraManager {
         }
         if (rc.equals("ALL")) {
             ccl.setDefaultWriteConsistencyLevel(HConsistencyLevel.ALL);
+        } else if (rc.equals("LOCAL_QUORUM")) {
+            ccl.setDefaultWriteConsistencyLevel(HConsistencyLevel.LOCAL_QUORUM);
         } else if (rc.equals("QUORUM")) {
             ccl.setDefaultWriteConsistencyLevel(HConsistencyLevel.QUORUM);
         } else {

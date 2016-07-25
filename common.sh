@@ -14,6 +14,10 @@ for jar in $AGENT_HOME/lib/jackson-2.0.0/*.jar; do
     CLASSPATH=$CLASSPATH:$jar
 done
 
+for jar in $AGENT_HOME/lib/opencsv-2.4/*.jar; do
+    CLASSPATH=$CLASSPATH:$jar
+done
+
 for jar in $AGENT_HOME/lib/jdbc/*.jar; do
     CLASSPATH=$CLASSPATH:$jar
 done

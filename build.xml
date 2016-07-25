@@ -1,11 +1,12 @@
 <?xml version="1.0" ?>
-<project name="Cassandra ETL Agent" default="default">
+<project name="Groupalia ETL Agent" default="default">
     
     <property name="lib.home" value="lib"/>
     <property name="hector.dir" location="lib/hector-core-1.0-3"/>    
     <property name="apache-commons.dir" location="lib/apache-commons"/>
     <property name="jackson.dir" location="lib/jackson-2.0.0"/>
     <property name="jdbc.dir" location="lib/jdbc"/>
+	<property name="opencsv.dir" location="lib/opencsv-2.4"/>	
 
     <property name="build.dir" location="build/"/>
     <property name="src.dir" location="agent"/>
@@ -23,6 +24,9 @@
         <fileset dir="${jdbc.dir}">
             <include name="*.jar"/>
         </fileset>        
+        <fileset dir="${opencsv.dir}">
+            <include name="*.jar"/>
+        </fileset>
         <pathelement location="${build.dir}"/>
     </path>
 
@@ -38,7 +42,10 @@
         </fileset>        
         <fileset dir="${jdbc.dir}">
             <include name="*.jar"/>
-        </fileset>        
+        </fileset>      
+        <fileset dir="${opencsv.dir}">
+            <include name="*.jar"/>
+        </fileset>
         <pathelement location="${build.dir}"/>
        
     </path>

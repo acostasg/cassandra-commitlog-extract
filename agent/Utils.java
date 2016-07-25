@@ -2,12 +2,70 @@ package agent;
 
 import java.io.*;
 import java.util.*;
+import java.security.*;
 
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.log4j.Logger;
 
 public class Utils {
+	
+	protected static Logger logger = Logger.getLogger(Main.class.getName());
+
+    private static MessageDigest md5Digest = null;
+    private static Map<String,String> columnCache = null;
+
+    // obfuscate some column names to workaround Oracle column name limits
+    public static Map<String,String> validOracleColumnNames(Set<String> cols) {
+        if (Utils.md5Digest == null) {
+            try {
+                Utils.md5Digest = MessageDigest.getInstance("MD5");
+            } catch (Exception e) {
+
+            }
+        }
+        if (Utils.columnCache == null) {
+            Utils.columnCache = new HashMap<String,String>();
+        }
+
+        Map<String,String> r = new HashMap<String,String>();
+        for (String col : cols) {
+            String validCol = col;
+            if (Utils.columnCache.containsKey(col)) {
+                validCol = columnCache.get(col);
+            } else {
+                if (col.length() > 30) {
+                    byte[] colBytes = null;
+                    try {
+                        colBytes = col.getBytes("UTF-8");
+                    } catch (Exception e) {
+                        //log DEBUG
+                        logger.debug("Exception column check Cassandra:"+ col);
+                    }
+                    byte[] colMD5 = null;
+                    colMD5 = Utils.md5Digest.digest(colBytes);
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i < 4; i++) {
+                        sb.append(String.format("%02X", colMD5[i]));
+                    }
+                    validCol = col.substring(0, 22) + sb.toString();
+                }
+                columnCache.put(col, validCol);
+            }
+            r.put(col, validCol);
+        }
+        
+        //log DEBUG list validates col
+        logger.debug("Mapping validate columns:"+ r.toString());
+        
+        return r;
+    }
 
     public static String deFux(String v) throws Exception {
+        // remove mapper JSON header
+        if (v.startsWith("!!!Groupalia_Mapper_Manager.JSON!!!", 0)) {
+            v = v.substring(35);
+        }
+
         // there is a lot of crap in this database. nuke some of it, we cannot search it anyway
         byte[] b = v.getBytes("ISO-8859-1");
         boolean changed = false;
@@ -18,9 +76,40 @@ public class Utils {
                 changed = true;
             }
             // ^ - we reserve this char for the COPY delimiter
-            // " - mangles quoting
-            // \ - mangles quoting
+            // " - it fucks up quoting
+            // \ - it fucks up quoting
             if (b[i] == '^' || b[i] == '"' || b[i] == '\\') {
+                b[i] = 32;
+                changed = true;
+            }
+        }
+        if (changed) {
+            v = new String(b, "ISO-8859-1");
+        }
+        v = Utils.fixEncoding(v);
+        return v;
+    }
+    
+    public static String deFuxOracle(String v) throws Exception {
+        // remove mapper JSON header
+        if (v.startsWith("!!!Groupalia_Mapper_Manager.JSON!!!", 0)) {
+            v = v.substring(35);
+        }
+        // remplace ' for ''
+        v = v.replaceAll("'", "''");
+
+        // there is a lot of crap in this database. nuke some of it, we cannot search it anyway
+        byte[] b = v.getBytes("ISO-8859-1");
+        boolean changed = false;
+        for (int i = 0; i < b.length; i++) {
+            // remove useless control chars
+            if ((b[i] >= 0 && b[i] < 32) && b[i] != 13  && b[i] != 10  && b[i] != 9) {
+                b[i] = 32;
+                changed = true;
+            }
+            // ^ - we reserve this char for the COPY delimiter
+            // \ - it fucks up quoting
+            if (b[i] == '^' || b[i] == '\\') {
                 b[i] = 32;
                 changed = true;
             }
@@ -33,6 +122,7 @@ public class Utils {
     }
 
     public static String deFuxMore(String v) throws Exception {
+        // second pass defuxing, because this data is just braindead
         byte[] b = v.getBytes("ISO-8859-1");
         boolean changed = false;
         for (int i = 0; i < b.length; i++) {
@@ -45,6 +135,12 @@ public class Utils {
         if (changed) {
             v = new String(b, "ISO-8859-1");
         }
+        return v;
+    }
+
+    public static String hstoreEscape(String v) throws Exception {
+        v = v.replaceAll("\\\\", "\\\\");
+        v = v.replaceAll("\\\"", "\\\"");
         return v;
     }
 

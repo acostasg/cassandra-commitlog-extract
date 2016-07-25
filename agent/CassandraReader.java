@@ -13,6 +13,7 @@ import me.prettyprint.hector.api.exceptions.*;
 import org.apache.cassandra.thrift.*;
 
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.log4j.Logger;
 
 import java.io.*;
 import java.util.*;
@@ -20,7 +21,9 @@ import java.lang.reflect.Method;
 
 // multi purpose reader class used by all cassandra readers: dumpers, ID gatherers, preloaders
 public class CassandraReader {
-
+	
+    protected static Logger logger = Logger.getLogger(CommitLogReader.class.getName());
+	
 	private String table;
     private String[] columns;
 	private String lastKey;
@@ -42,7 +45,7 @@ public class CassandraReader {
         StringSerializer stringSerializer = StringSerializer.get(); 
         Keyspace keyspace = manager.getKeyspace();
 
-        rangeSlicesQuery = HFactory.createRangeSlicesQuery(keyspace, stringSerializer, stringSerializer, stringSerializer);            
+        rangeSlicesQuery = HFactory.createRangeSlicesQuery(keyspace, stringSerializer, stringSerializer, stringSerializer);
         rangeSlicesQuery.setColumnFamily(table);
         rangeSlicesQuery.setKeys(lastKey, "");
         rangeSlicesQuery.setRowCount(blockSize);
@@ -52,7 +55,7 @@ public class CassandraReader {
             rangeSlicesQuery.setRange("", "", false, 100000);
         }
 
-        multigetSliceQuery = HFactory.createMultigetSliceQuery(keyspace, stringSerializer, stringSerializer, stringSerializer);            
+        multigetSliceQuery = HFactory.createMultigetSliceQuery(keyspace, stringSerializer, stringSerializer, stringSerializer);
         multigetSliceQuery.setColumnFamily(table);
         //multigetSliceQuery.setKeys(
         if (columns != null) {
@@ -64,6 +67,9 @@ public class CassandraReader {
 
     private RowBlock processResult(Rows<String, String, String> orderedRows) {
         RowBlock block = new RowBlock(table);
+        
+        Map<String,Object> ct = (Map<String,Object>)ConfManager.getTable(table);
+        Map<String,String> cols = (Map<String,String>)ct.get("fixedColumns");
 
         for (me.prettyprint.hector.api.beans.Row<String, String, String> cassandraRow : orderedRows) {
             String key = cassandraRow.getKey();
@@ -77,10 +83,18 @@ public class CassandraReader {
 
             List columns = cassandraRow.getColumnSlice().getColumns();
             
-            int n = 0;
+            int n = 0;            
             for (Iterator iterator = columns.iterator(); iterator.hasNext();) {
                 HColumn column = (HColumn)iterator.next();
-                row.columns.put(column.getName().toString(), column.getValue().toString());
+                if(cols.get(column.getName().toString()) != null && cols.get(column.getValue().toString()) != null  && cols.get(column.getName().toString()).equals("Integer"))
+                {
+                	Integer value = Character.codePointAt(column.getValue().toString(), 0);
+                	row.columns.put(column.getName().toString(), value.toString());
+                }
+                else
+                {
+                	row.columns.put(column.getName().toString(), column.getValue().toString());
+                }
                 n++;
             }
             // skip empty rows
@@ -90,7 +104,8 @@ public class CassandraReader {
 
             block.rows.add(row);
         }
-
+        
+        logger.debug("** FINSIH READ CF "+ table +" **");
         return block;
     }
 

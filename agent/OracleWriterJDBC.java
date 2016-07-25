@@ -12,11 +12,21 @@ public class OracleWriterJDBC extends OracleWriter implements RowWriter {
     }
 
     public void write(RowBlock block, Filter filter) throws Exception {
-        writer.write(inserts(block, filter));
+        //writer.write(inserts(block, filter));
+        insertsJDBC(writer, block, filter);
     }
 
     public void close() throws Exception {
         writer.close();
     }
 
+    public void commit() throws Exception {
+        writer.write(mergeTempTable());
+    }
+
+	@Override
+	public void execute(long timestamp) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
 }

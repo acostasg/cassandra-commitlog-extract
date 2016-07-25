@@ -12,8 +12,11 @@ public class CSVWriter implements RowWriter {
     private ArrayList<String> columns;
     private boolean outputHeader;
     private String path;
+    private String table;
 
     public void init(String table) throws Exception {
+    	
+    	this.table = table;
 
         Map<String,Object> conf = ConfManager.getConnection("csv");
 
@@ -61,18 +64,20 @@ public class CSVWriter implements RowWriter {
     private void writeColumns() throws Exception {
         boolean first = true;
         StringBuilder sb = new StringBuilder("");
+        Map<String,String> oracleCols = Utils.validOracleColumnNames(new HashSet(columns));
         for (String column : columns) {
             if (!first) {
                 sb.append(",");
             } else {
                 first = false;
             }
+            column = oracleCols.get(column);
             sb.append(column);
         }
         sb.append("\n");
         writer.write(sb.toString());
     }
-
+    
     public void write(RowBlock block, Filter filter) throws Exception {
 
         StringBuffer sb = new StringBuffer("");
@@ -87,7 +92,7 @@ public class CSVWriter implements RowWriter {
                 writeColumns();
             }
 
-            if (filter != null && !filter.isValid(row)) {
+            if (filter != null && !filter.isValid(row) && !filter.tableNotFilter(this.table) ) {
                 continue;
             }
 
@@ -116,11 +121,23 @@ public class CSVWriter implements RowWriter {
         writer.close();
     }
 
+    public void commit() throws Exception {
+    }
+
     private void escape(String v, StringBuffer sb) throws Exception {
+        if (v.startsWith("!!!Groupalia_Mapper_Manager.JSON!!!", 0)) {
+            v = v.substring(35);
+        }
         v = Utils.deFuxMore(v);
         v = Utils.fixEncoding(v);
         v = StringEscapeUtils.escapeCsv(v);
         sb.append(v);
     }
+
+	@Override
+	public void execute(long timestamp) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
 
 }
