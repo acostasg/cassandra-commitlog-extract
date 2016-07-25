@@ -3,11 +3,11 @@ package agent;
 import java.util.*;
 
 public class IDBlockManager {
-    private static Map<String,IDBlock> blocks;
+    private static Map<String, IDBlock> blocks;
     private static IDBlockManager instance = null;
 
     private IDBlockManager() {
-        blocks = new HashMap<String,IDBlock>();
+        blocks = new HashMap<String, IDBlock>();
     }
 
     public static IDBlockManager singleton() {

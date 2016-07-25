@@ -30,15 +30,14 @@ import org.apache.cassandra.thrift.*;
 
 import org.apache.log4j.Logger;
 
-public class CommitLogReader
-{
+public class CommitLogReader {
     protected static Logger logger = Logger.getLogger(CommitLogReader.class.getName());
 
     private int blockSize;
     private int totalProcessed;
     private int deltaProcessed;
 
-    private Map<Integer,String> tableID;
+    private Map<Integer, String> tableID;
 
     public CommitLogReader(int blockSize) throws Exception {
         this.blockSize = blockSize;
@@ -55,17 +54,17 @@ public class CommitLogReader
         }
     }
 
-    private Map<String,IDBlock> bins = null;
+    private Map<String, IDBlock> bins = null;
 
     private void flushBins() {
-        Map<String,IDBlock> oldBins = bins;
-        bins = new HashMap<String,IDBlock>();
+        Map<String, IDBlock> oldBins = bins;
+        bins = new HashMap<String, IDBlock>();
         deltaProcessed = 0;
         if (oldBins == null) {
-            
+
         } else {
             logger.info("*** Flushing mutation bins:");
-            for (Map.Entry<String,IDBlock> kv : oldBins.entrySet()) {
+            for (Map.Entry<String, IDBlock> kv : oldBins.entrySet()) {
                 String table = kv.getKey();
                 IDBlock ids = kv.getValue();
                 logger.info(table + ": " + ids.ids.size());
@@ -89,13 +88,12 @@ public class CommitLogReader
     }
 
     private static final int MAX_OUTSTANDING_REPLAY_COUNT = 1024;
-    private static final int SEGMENT_SIZE = 128*1024*1024;
-    
+    private static final int SEGMENT_SIZE = 128 * 1024 * 1024;
+
     private static Pattern COMMIT_LOG_FILE_PATTERN = Pattern.compile("CommitLog-(\\d+).log");
 
     // assume filename is a 'possibleCommitLogFile()'
-    private static long idFromFilename(String filename)
-    {
+    private static long idFromFilename(String filename) {
         Matcher matcher = COMMIT_LOG_FILE_PATTERN.matcher(filename);
         try {
             if (matcher.matches())
@@ -111,13 +109,10 @@ public class CommitLogReader
         return COMMIT_LOG_FILE_PATTERN.matcher(filename).matches();
     }
 
-    public void readCommitLogDirectory(final String directory, long rollbackDeltaSeconds) throws IOException
-    {
-        final long earliest = System.currentTimeMillis() - rollbackDeltaSeconds*1000;
-        File[] files = new File(directory).listFiles(new FilenameFilter()
-        {
-            public boolean accept(File dir, String name)
-            {
+    public void readCommitLogDirectory(final String directory, long rollbackDeltaSeconds) throws IOException {
+        final long earliest = System.currentTimeMillis() - rollbackDeltaSeconds * 1000;
+        File[] files = new File(directory).listFiles(new FilenameFilter() {
+            public boolean accept(File dir, String name) {
                 if (!CommitLogReader.possibleCommitLogFile(name)) {
                     return false;
                 }
@@ -143,20 +138,19 @@ public class CommitLogReader
             }
         });
         if (files == null || files.length == 0) {
-            logger.info("No commitlog files found in "+ directory +"; skipping replay");
+            logger.info("No commitlog files found in " + directory + "; skipping replay");
             return;
         }
 
         // is this really needed??
         //Arrays.sort(files, new FileUtils.FileComparator());
 
-        int replayed = recover(files, earliest*1000);
+        int replayed = recover(files, earliest * 1000);
         logger.info("Log scan complete, " + totalProcessed + " accepted mutations");
     }
 
 
-    private static byte[] readWithShortLength(DataInput dis) throws IOException
-    {
+    private static byte[] readWithShortLength(DataInput dis) throws IOException {
         int length = (dis.readByte() & 0xFF) << 8;
         length = length | (dis.readByte() & 0xFF);
         byte[] buff = new byte[length];
@@ -164,22 +158,19 @@ public class CommitLogReader
         return buff;
     }
 
-    private static byte[] readWithLength(DataInput dis) throws IOException
-    {
+    private static byte[] readWithLength(DataInput dis) throws IOException {
         int length = dis.readInt();
         byte[] buff = new byte[length];
         dis.readFully(buff);
         return buff;
     }
 
-    private static void skipWithLength(DataInput dis) throws IOException
-    {
+    private static void skipWithLength(DataInput dis) throws IOException {
         int length = dis.readInt();
         dis.skipBytes(length);
     }
 
-    private class Mutation
-    {
+    private class Mutation {
         public String keyspace;
         public String table;
         public String key;
@@ -227,13 +218,12 @@ modificationsCount int
 
 */
 
-    public final static int DELETION_MASK       = 0x01;
-    public final static int EXPIRATION_MASK     = 0x02;
-    public final static int COUNTER_MASK        = 0x04;
+    public final static int DELETION_MASK = 0x01;
+    public final static int EXPIRATION_MASK = 0x02;
+    public final static int COUNTER_MASK = 0x04;
     public final static int COUNTER_UPDATE_MASK = 0x08;
 
-    private Mutation deserialize(DataInput dis) throws IOException
-    {
+    private Mutation deserialize(DataInput dis) throws IOException {
         String keyspace = dis.readUTF();
         byte[] keyB = CommitLogReader.readWithShortLength(dis);
         long ts = 0;
@@ -259,7 +249,7 @@ modificationsCount int
 
                 byte[] nameB = CommitLogReader.readWithShortLength(dis);
 
-                int flags = dis.readUnsignedByte();                
+                int flags = dis.readUnsignedByte();
 
                 if ((flags & COUNTER_MASK) != 0) {
                     long timestampOfLastDelete = dis.readLong();
@@ -268,8 +258,7 @@ modificationsCount int
                         ts = colTS;
                     }
                     CommitLogReader.skipWithLength(dis);
-                }
-                else if ((flags & EXPIRATION_MASK) != 0) {
+                } else if ((flags & EXPIRATION_MASK) != 0) {
                     int ttl = dis.readInt();
                     int expiration = dis.readInt();
                     long colTS = dis.readLong();
@@ -277,8 +266,7 @@ modificationsCount int
                         ts = colTS;
                     }
                     CommitLogReader.skipWithLength(dis);
-                }
-                else {
+                } else {
                     long colTS = dis.readLong();
                     if (colTS > ts) {
                         ts = colTS;
@@ -302,25 +290,22 @@ modificationsCount int
         return m;
     }
 
-    public int recover(File[] clogs, long earliest) throws IOException
-    {
+    public int recover(File[] clogs, long earliest) throws IOException {
         byte[] bytes = new byte[4096];
         Checksum checksum = new CRC32();
         int count = 0;
         int discardedCount = 0;
         int invalidCount = 0;
 
-        for (final File file : clogs)
-        {
+        for (final File file : clogs) {
             final long segment = CommitLogReader.idFromFilename(file.getName());
 
             RandomAccessFile reader = new RandomAccessFile(file, "r");
 
             logger.info("Scanning " + file.getAbsolutePath());
-            logger.info("Earliest timestamp accepted: " + (new java.util.Date(earliest/1000)) + ", microtime: " + earliest);
+            logger.info("Earliest timestamp accepted: " + (new java.util.Date(earliest / 1000)) + ", microtime: " + earliest);
 
-            try
-            {
+            try {
                 //int replayPosition = 0;
 
                 // maybe do something smart about the replay position to not read the entire file???
@@ -330,13 +315,11 @@ modificationsCount int
 
                 /* read the logs populate RowMutation and apply */
                 //while (!reader.isEOF())
-                while (true)
-                {
+                while (true) {
 
                     long claimedCRC32;
                     int serializedSize;
-                    try
-                    {
+                    try {
                         // any of the reads may hit EOF
                         serializedSize = reader.readInt();
                         // RowMutation must be at LEAST 10 bytes:
@@ -355,15 +338,12 @@ modificationsCount int
                             bytes = new byte[(int) (1.2 * serializedSize)];
                         reader.readFully(bytes, 0, serializedSize);
                         claimedCRC32 = reader.readLong();
-                    }
-                    catch(EOFException eof)
-                    {
+                    } catch (EOFException eof) {
                         break; // last CL entry didn't get completely written.  that's ok.
                     }
 
                     checksum.update(bytes, 0, serializedSize);
-                    if (claimedCRC32 != checksum.getValue())
-                    {
+                    if (claimedCRC32 != checksum.getValue()) {
                         // this entry must not have been fsynced.  probably the rest is bad too,
                         // but just in case there is no harm in trying them (since we still read on an entry boundary)
                         continue;
@@ -372,19 +352,19 @@ modificationsCount int
                     Mutation m = null;
                     try {
                         DataInputStream dis = new DataInputStream(new ByteArrayInputStream(bytes));
-                        m = deserialize(dis);                        
+                        m = deserialize(dis);
                     } catch (Exception e) {
                         invalidCount++;
                     }
 
                     if (m != null) {
                         if (m.ts < earliest) {
-                        	//debug trace
-                        	//logger.debug("discarded "+ m.key +": "+m.ts+" < "+earliest);
+                            //debug trace
+                            //logger.debug("discarded "+ m.key +": "+m.ts+" < "+earliest);
                             discardedCount++;
                             continue;
                         }
-                    	//debug trace
+                        //debug trace
                         //logger.debug("Accepted "+ m.key +": "+m.ts+" > "+earliest);
                         changed(m.table, m.key);
                         count++;
@@ -393,19 +373,18 @@ modificationsCount int
                         discardedCount++;
                     }
                 }
-            }
-            finally
-            {
+            } finally {
                 try {
                     reader.close();
-                } catch (Throwable t) { }
+                } catch (Throwable t) {
+                }
 
                 flushBins();
-                logger.info("" + count +" accepted mutations, " + discardedCount + " discarded. Finished reading " + file);
+                logger.info("" + count + " accepted mutations, " + discardedCount + " discarded. Finished reading " + file);
 
             }
         }
-        
+
         return count;
     }
 

@@ -1,6 +1,7 @@
 package agent;
 
 // https://github.com/rantav/hector
+
 import me.prettyprint.cassandra.serializers.*;
 import me.prettyprint.cassandra.model.*;
 import me.prettyprint.hector.api.*;
@@ -21,28 +22,28 @@ import java.lang.reflect.Method;
 
 // multi purpose reader class used by all cassandra readers: dumpers, ID gatherers, preloaders
 public class CassandraReader {
-	
+
     protected static Logger logger = Logger.getLogger(CommitLogReader.class.getName());
-	
-	private String table;
+
+    private String table;
     private String[] columns;
-	private String lastKey;
-	private int blockSize;
-	private CassandraManager manager;
+    private String lastKey;
+    private int blockSize;
+    private CassandraManager manager;
     private RangeSlicesQuery<String, String, String> rangeSlicesQuery;
     private MultigetSliceQuery<String, String, String> multigetSliceQuery;
 
-	public CassandraReader(String table, String[] columns, int blockSize) throws Exception {
-		this.manager = CassandraManager.singleton();
+    public CassandraReader(String table, String[] columns, int blockSize) throws Exception {
+        this.manager = CassandraManager.singleton();
         this.table = table;
         this.columns = columns;
         this.blockSize = blockSize;
         reset();
-	}
+    }
 
     public void reset() throws Exception {
-    	lastKey = "";
-        StringSerializer stringSerializer = StringSerializer.get(); 
+        lastKey = "";
+        StringSerializer stringSerializer = StringSerializer.get();
         Keyspace keyspace = manager.getKeyspace();
 
         rangeSlicesQuery = HFactory.createRangeSlicesQuery(keyspace, stringSerializer, stringSerializer, stringSerializer);
@@ -67,9 +68,9 @@ public class CassandraReader {
 
     private RowBlock processResult(Rows<String, String, String> orderedRows) {
         RowBlock block = new RowBlock(table);
-        
-        Map<String,Object> ct = (Map<String,Object>)ConfManager.getTable(table);
-        Map<String,String> cols = (Map<String,String>)ct.get("fixedColumns");
+
+        Map<String, Object> ct = (Map<String, Object>) ConfManager.getTable(table);
+        Map<String, String> cols = (Map<String, String>) ct.get("fixedColumns");
 
         for (me.prettyprint.hector.api.beans.Row<String, String, String> cassandraRow : orderedRows) {
             String key = cassandraRow.getKey();
@@ -82,18 +83,15 @@ public class CassandraReader {
             agent.Row row = new agent.Row(key);
 
             List columns = cassandraRow.getColumnSlice().getColumns();
-            
-            int n = 0;            
-            for (Iterator iterator = columns.iterator(); iterator.hasNext();) {
-                HColumn column = (HColumn)iterator.next();
-                if(cols.get(column.getName().toString()) != null && cols.get(column.getValue().toString()) != null  && cols.get(column.getName().toString()).equals("Integer"))
-                {
-                	Integer value = Character.codePointAt(column.getValue().toString(), 0);
-                	row.columns.put(column.getName().toString(), value.toString());
-                }
-                else
-                {
-                	row.columns.put(column.getName().toString(), column.getValue().toString());
+
+            int n = 0;
+            for (Iterator iterator = columns.iterator(); iterator.hasNext(); ) {
+                HColumn column = (HColumn) iterator.next();
+                if (cols.get(column.getName().toString()) != null && cols.get(column.getValue().toString()) != null && cols.get(column.getName().toString()).equals("Integer")) {
+                    Integer value = Character.codePointAt(column.getValue().toString(), 0);
+                    row.columns.put(column.getName().toString(), value.toString());
+                } else {
+                    row.columns.put(column.getName().toString(), column.getValue().toString());
                 }
                 n++;
             }
@@ -104,8 +102,8 @@ public class CassandraReader {
 
             block.rows.add(row);
         }
-        
-        logger.debug("** FINSIH READ CF "+ table +" **");
+
+        logger.debug("** FINSIH READ CF " + table + " **");
         return block;
     }
 
@@ -117,7 +115,7 @@ public class CassandraReader {
 
     public RowBlock readSequential() throws Exception {
         rangeSlicesQuery.setKeys(lastKey, "");
-		OrderedRows<String, String, String> orderedRows = rangeSlicesQuery.execute().get();
+        OrderedRows<String, String, String> orderedRows = rangeSlicesQuery.execute().get();
         return processResult(orderedRows);
     }
 

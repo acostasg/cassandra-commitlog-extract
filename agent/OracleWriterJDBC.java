@@ -24,9 +24,9 @@ public class OracleWriterJDBC extends OracleWriter implements RowWriter {
         writer.write(mergeTempTable());
     }
 
-	@Override
-	public void execute(long timestamp) throws Exception {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void execute(long timestamp) throws Exception {
+        // TODO Auto-generated method stub
+
+    }
 }

@@ -9,8 +9,8 @@ public class IDBlockDumper implements RowGatherer {
 
     public void init(String table) throws Exception {
         this.table = table;
-        Map<String,Object> conf = ConfManager.getTable(table);
-        int confBlockSize = ((Integer)conf.get("blockSize")).intValue();
+        Map<String, Object> conf = ConfManager.getTable(table);
+        int confBlockSize = ((Integer) conf.get("blockSize")).intValue();
         cassandraReader = new CassandraReader(table, null, confBlockSize + 1);
         String sIBS = ConfManager.getGlobal("idBlockSize");
         idBlockSize = Integer.parseInt(sIBS);
@@ -32,10 +32,10 @@ public class IDBlockDumper implements RowGatherer {
         // nothing to close, CassandraManager is shared and keeps open connections
     }
 
-	@Override
-	public void renameCSVFile() throws Exception {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void renameCSVFile() throws Exception {
+        // TODO Auto-generated method stub
+
+    }
 
 }

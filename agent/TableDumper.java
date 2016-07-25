@@ -6,8 +6,8 @@ public class TableDumper implements RowGatherer {
     private CassandraReader cassandraReader;
 
     public void init(String table) throws Exception {
-        Map<String,Object> conf = ConfManager.getTable(table);
-        int confBlockSize = ((Integer)conf.get("blockSize")).intValue();
+        Map<String, Object> conf = ConfManager.getTable(table);
+        int confBlockSize = ((Integer) conf.get("blockSize")).intValue();
         cassandraReader = new CassandraReader(table, null, confBlockSize + 1);
     }
 
@@ -23,10 +23,10 @@ public class TableDumper implements RowGatherer {
         // nothing to close, CassandraManager is shared and keeps open connections
     }
 
-	@Override
-	public void renameCSVFile() throws Exception {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void renameCSVFile() throws Exception {
+        // TODO Auto-generated method stub
+
+    }
 
 }

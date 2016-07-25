@@ -12,14 +12,14 @@ public class Preload {
 
     private static Preload instance = null;
 
-    private Map<String,String> storeToWebsite;
-    private Map<String,String> productToWebsite;
+    private Map<String, String> storeToWebsite;
+    private Map<String, String> productToWebsite;
     private Set<String> voucherTemplateToWebsiteExists;
 
-	public Preload() throws Exception {
+    public Preload() throws Exception {
 
         // preload store->website mapping
-        storeToWebsite = new HashMap<String,String>();
+        storeToWebsite = new HashMap<String, String>();
         CassandraReader reader = new CassandraReader("Store", new String[]{"websiteId"}, 1000);
         while (true) {
             RowBlock block = reader.readSequential();
@@ -36,7 +36,7 @@ public class Preload {
         }
 
         // preload product->website mapping
-        productToWebsite = new HashMap<String,String>();
+        productToWebsite = new HashMap<String, String>();
         reader = new CassandraReader("Product", new String[]{"websiteId"}, 1000);
         while (true) {
             RowBlock block = reader.readSequential();
@@ -65,7 +65,7 @@ public class Preload {
                 String websiteIds = row.columns.get("websiteIds");
                 if (websiteIds != null) {
                     String[] arrayIds = websiteIds.split("(,)");
-                    for (String id : arrayIds ) {
+                    for (String id : arrayIds) {
                         voucherTemplateToWebsiteExists.add(voucherTemplateId + ":" + id);
                     }
                 }
@@ -73,11 +73,11 @@ public class Preload {
         }
 
         logger.info(
-            storeToWebsite.size() + " stores, " +
-            productToWebsite.size() + " products, " +
-            voucherTemplateToWebsiteExists.size()  + " voucher templates"
+                storeToWebsite.size() + " stores, " +
+                        productToWebsite.size() + " products, " +
+                        voucherTemplateToWebsiteExists.size() + " voucher templates"
         );
-	}
+    }
 
     public static void init() throws Exception {
         Preload.instance = new Preload();

@@ -12,16 +12,16 @@ public class ConfManager {
 
     protected static Logger logger = Logger.getLogger(Main.class.getName());
 
-    private static Map<String,String> confGlobals;
+    private static Map<String, String> confGlobals;
     @SuppressWarnings("unchecked")
-    private static Map<String,Object> confConnections;
+    private static Map<String, Object> confConnections;
     @SuppressWarnings("unchecked")
-    private static Map<String,Object> confTables;
+    private static Map<String, Object> confTables;
     @SuppressWarnings("unchecked")
-    private static Map<String,Object> confExporters;
+    private static Map<String, Object> confExporters;
 
     public static void init(String confPath) throws Exception {
-        confGlobals = new HashMap<String,String>();
+        confGlobals = new HashMap<String, String>();
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
@@ -43,26 +43,26 @@ public class ConfManager {
         return confGlobals.get(name);
     }
 
-    public static Map<String,Object> getConnection(String name) {
+    public static Map<String, Object> getConnection(String name) {
         @SuppressWarnings("unchecked")
-        Map<String,Object> r;
-        synchronized(ConfManager.class) {
-            r = (Map<String,Object>)confConnections.get(name);
+        Map<String, Object> r;
+        synchronized (ConfManager.class) {
+            r = (Map<String, Object>) confConnections.get(name);
         }
         return r;
     }
 
-    public static Map<String,Object> getTable(String name) {
-        Map<String,Object> r;
+    public static Map<String, Object> getTable(String name) {
+        Map<String, Object> r;
         @SuppressWarnings("unchecked")
-        Map<String,Object> defaultTable;
+        Map<String, Object> defaultTable;
         @SuppressWarnings("unchecked")
-        Map<String,Object> table;
-        synchronized(ConfManager.class) {
-            defaultTable = (Map<String,Object>)confTables.get("*default");
-            table = (Map<String,Object>)confTables.get(name);
+        Map<String, Object> table;
+        synchronized (ConfManager.class) {
+            defaultTable = (Map<String, Object>) confTables.get("*default");
+            table = (Map<String, Object>) confTables.get(name);
         }
-        r = new HashMap<String,Object>();
+        r = new HashMap<String, Object>();
         if (defaultTable != null) {
             r.putAll(defaultTable);
         }
@@ -72,11 +72,11 @@ public class ConfManager {
         return r;
     }
 
-    public static Map<String,Object> getExporter(String name) {
+    public static Map<String, Object> getExporter(String name) {
         @SuppressWarnings("unchecked")
-        Map<String,Object> r;
-        synchronized(ConfManager.class) {
-            r = (Map<String,Object>)confExporters.get(name);
+        Map<String, Object> r;
+        synchronized (ConfManager.class) {
+            r = (Map<String, Object>) confExporters.get(name);
         }
         return r;
     }

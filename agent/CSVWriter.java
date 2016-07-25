@@ -15,38 +15,38 @@ public class CSVWriter implements RowWriter {
     private String table;
 
     public void init(String table) throws Exception {
-    	
-    	this.table = table;
 
-        Map<String,Object> conf = ConfManager.getConnection("csv");
+        this.table = table;
+
+        Map<String, Object> conf = ConfManager.getConnection("csv");
 
         outputHeader = true;
         if (conf.containsKey("header")) {
-            outputHeader = ((Boolean)conf.get("header")).booleanValue();
+            outputHeader = ((Boolean) conf.get("header")).booleanValue();
         }
 
-        long fileSize = 8*1024*1024;
+        long fileSize = 8 * 1024 * 1024;
         if (conf.containsKey("fileSize")) {
             try {
-                fileSize = ((Long)conf.get("fileSize")).longValue();
-            } catch (ClassCastException e){
-                fileSize = ((Integer)conf.get("fileSize")).intValue();
+                fileSize = ((Long) conf.get("fileSize")).longValue();
+            } catch (ClassCastException e) {
+                fileSize = ((Integer) conf.get("fileSize")).intValue();
             }
         }
 
         if (conf.containsKey("path")) {
-            this.path = (String)conf.get("path");
+            this.path = (String) conf.get("path");
         } else {
             this.path = "./";
         }
 
         this.columns = null;
 
-        Map<String,Object> ct = (Map<String,Object>)ConfManager.getTable(table);
+        Map<String, Object> ct = (Map<String, Object>) ConfManager.getTable(table);
         boolean printColumnsNow = false;
 
         if (ct.containsKey("fixedColumns")) {
-            LinkedHashMap<String,String> cols = (LinkedHashMap<String,String>)ct.get("fixedColumns");
+            LinkedHashMap<String, String> cols = (LinkedHashMap<String, String>) ct.get("fixedColumns");
             this.columns = new ArrayList<String>();
             this.columns.add("id");
             for (Map.Entry<String, String> kv : cols.entrySet()) {
@@ -64,7 +64,7 @@ public class CSVWriter implements RowWriter {
     private void writeColumns() throws Exception {
         boolean first = true;
         StringBuilder sb = new StringBuilder("");
-        Map<String,String> oracleCols = Utils.validOracleColumnNames(new HashSet(columns));
+        Map<String, String> oracleCols = Utils.validOracleColumnNames(new HashSet(columns));
         for (String column : columns) {
             if (!first) {
                 sb.append(",");
@@ -77,7 +77,7 @@ public class CSVWriter implements RowWriter {
         sb.append("\n");
         writer.write(sb.toString());
     }
-    
+
     public void write(RowBlock block, Filter filter) throws Exception {
 
         StringBuffer sb = new StringBuffer("");
@@ -92,7 +92,7 @@ public class CSVWriter implements RowWriter {
                 writeColumns();
             }
 
-            if (filter != null && !filter.isValid(row) && !filter.tableNotFilter(this.table) ) {
+            if (filter != null && !filter.isValid(row) && !filter.tableNotFilter(this.table)) {
                 continue;
             }
 
@@ -134,10 +134,10 @@ public class CSVWriter implements RowWriter {
         sb.append(v);
     }
 
-	@Override
-	public void execute(long timestamp) throws Exception {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void execute(long timestamp) throws Exception {
+        // TODO Auto-generated method stub
+
+    }
 
 }

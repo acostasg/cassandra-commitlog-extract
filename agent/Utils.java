@@ -8,14 +8,14 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
 
 public class Utils {
-	
-	protected static Logger logger = Logger.getLogger(Main.class.getName());
+
+    protected static Logger logger = Logger.getLogger(Main.class.getName());
 
     private static MessageDigest md5Digest = null;
-    private static Map<String,String> columnCache = null;
+    private static Map<String, String> columnCache = null;
 
     // obfuscate some column names to workaround Oracle column name limits
-    public static Map<String,String> validOracleColumnNames(Set<String> cols) {
+    public static Map<String, String> validOracleColumnNames(Set<String> cols) {
         if (Utils.md5Digest == null) {
             try {
                 Utils.md5Digest = MessageDigest.getInstance("MD5");
@@ -24,10 +24,10 @@ public class Utils {
             }
         }
         if (Utils.columnCache == null) {
-            Utils.columnCache = new HashMap<String,String>();
+            Utils.columnCache = new HashMap<String, String>();
         }
 
-        Map<String,String> r = new HashMap<String,String>();
+        Map<String, String> r = new HashMap<String, String>();
         for (String col : cols) {
             String validCol = col;
             if (Utils.columnCache.containsKey(col)) {
@@ -39,7 +39,7 @@ public class Utils {
                         colBytes = col.getBytes("UTF-8");
                     } catch (Exception e) {
                         //log DEBUG
-                        logger.debug("Exception column check Cassandra:"+ col);
+                        logger.debug("Exception column check Cassandra:" + col);
                     }
                     byte[] colMD5 = null;
                     colMD5 = Utils.md5Digest.digest(colBytes);
@@ -53,10 +53,10 @@ public class Utils {
             }
             r.put(col, validCol);
         }
-        
+
         //log DEBUG list validates col
-        logger.debug("Mapping validate columns:"+ r.toString());
-        
+        logger.debug("Mapping validate columns:" + r.toString());
+
         return r;
     }
 
@@ -71,7 +71,7 @@ public class Utils {
         boolean changed = false;
         for (int i = 0; i < b.length; i++) {
             // remove useless control chars
-            if ((b[i] >= 0 && b[i] < 32) && b[i] != 13  && b[i] != 10  && b[i] != 9) {
+            if ((b[i] >= 0 && b[i] < 32) && b[i] != 13 && b[i] != 10 && b[i] != 9) {
                 b[i] = 32;
                 changed = true;
             }
@@ -89,7 +89,7 @@ public class Utils {
         v = Utils.fixEncoding(v);
         return v;
     }
-    
+
     public static String deFuxOracle(String v) throws Exception {
         // remove mapper JSON header
         if (v.startsWith("!!!Groupalia_Mapper_Manager.JSON!!!", 0)) {
@@ -103,7 +103,7 @@ public class Utils {
         boolean changed = false;
         for (int i = 0; i < b.length; i++) {
             // remove useless control chars
-            if ((b[i] >= 0 && b[i] < 32) && b[i] != 13  && b[i] != 10  && b[i] != 9) {
+            if ((b[i] >= 0 && b[i] < 32) && b[i] != 13 && b[i] != 10 && b[i] != 9) {
                 b[i] = 32;
                 changed = true;
             }
@@ -149,13 +149,13 @@ public class Utils {
         try {
             byte[] bytes = latin1.getBytes("ISO-8859-1");
             if (!Utils.validUTF8(bytes))
-                return latin1;   
-            return new String(bytes, "UTF-8");  
+                return latin1;
+            return new String(bytes, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             // Impossible, throw unchecked
             throw new IllegalStateException("No Latin1 or UTF-8: " + e.getMessage());
         }
-     }
+    }
 
     private static boolean validUTF8(byte[] input) {
         int i = 0;

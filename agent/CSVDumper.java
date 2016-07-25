@@ -12,33 +12,33 @@ public class CSVDumper implements RowGatherer {
 
     public void init(String table) throws Exception {
 
-        Map<String,Object> connexions = ConfManager.getConnection((String)Main.exporterConf.get("configCSVDumper"));
-        Map<String,Object> conf = ConfManager.getTable(table);
-        int confBlockSize = ((Integer)conf.get("blockSize")).intValue();
+        Map<String, Object> connexions = ConfManager.getConnection((String) Main.exporterConf.get("configCSVDumper"));
+        Map<String, Object> conf = ConfManager.getTable(table);
+        int confBlockSize = ((Integer) conf.get("blockSize")).intValue();
 
         //path
         String path;
         if (connexions.containsKey("path")) {
-            path = (String)connexions.get("path");
+            path = (String) connexions.get("path");
         } else {
             path = "./";
         }
 
-        logger.debug("** Table init "+ table +"  dump: " + conf.toString() + " from path " + path +"**");
+        logger.debug("** Table init " + table + "  dump: " + conf.toString() + " from path " + path + "**");
 
         //Discard in seconds
         long time;
         if (Main.exporterConf.containsKey("commitLogPeriod")) {
-        	time = (Integer)Main.exporterConf.get("commitLogPeriod");
+            time = (Integer) Main.exporterConf.get("commitLogPeriod");
         } else {
-        	time = 300;
+            time = 300;
         }
 
-        csvReaderManager = new CSVReaderManager(table, path , confBlockSize + 1, time);
+        csvReaderManager = new CSVReaderManager(table, path, confBlockSize + 1, time);
     }
 
     public void reset() throws Exception {
-    	csvReaderManager.reset();
+        csvReaderManager.reset();
     }
 
     public RowBlock read() throws Exception {
@@ -46,16 +46,16 @@ public class CSVDumper implements RowGatherer {
     }
 
     public void close() throws Exception {
-    	csvReaderManager.close();
+        csvReaderManager.close();
     }
-    
+
     public void renameCSVFile() throws Exception {
-    	//change name post-processed csv file
-    	if (csvReaderManager.getFileProcessed() != null){
-	    	File filediriden = csvReaderManager.getFileProcessed();
-	    	File newfilediriden = new File(filediriden.getAbsolutePath()+"_processed");
-	    	filediriden.renameTo(newfilediriden);
-    	}
+        //change name post-processed csv file
+        if (csvReaderManager.getFileProcessed() != null) {
+            File filediriden = csvReaderManager.getFileProcessed();
+            File newfilediriden = new File(filediriden.getAbsolutePath() + "_processed");
+            filediriden.renameTo(newfilediriden);
+        }
     }
 
 }

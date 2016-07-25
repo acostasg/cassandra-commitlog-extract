@@ -1,6 +1,7 @@
 package agent;
 
 // https://github.com/rantav/hector
+
 import me.prettyprint.cassandra.serializers.*;
 import me.prettyprint.cassandra.model.*;
 import me.prettyprint.hector.api.*;
@@ -25,15 +26,15 @@ public class CassandraManager {
     private String keyspaceName;
     private Keyspace keyspace = null;
     private Cluster cluster = null;
-    
+
     public CassandraManager() throws Exception {
 
-        Map<String,Object> conf = ConfManager.getConnection("cassandra");
+        Map<String, Object> conf = ConfManager.getConnection("cassandra");
 
         @SuppressWarnings("unchecked")
-        List<String> hosts = (List<String>)conf.get("hosts");
-        String clusterName = (String)conf.get("cluster");
-        keyspaceName = (String)conf.get("keyspace");
+        List<String> hosts = (List<String>) conf.get("hosts");
+        String clusterName = (String) conf.get("cluster");
+        keyspaceName = (String) conf.get("keyspace");
 
         boolean first = true;
         for (String host : hosts) {
@@ -48,8 +49,8 @@ public class CassandraManager {
 
         ConfigurableConsistencyLevel ccl = new ConfigurableConsistencyLevel();
 
-        String rc = (String)conf.get("readConsistency");
-        String wc = (String)conf.get("writeConsistency");
+        String rc = (String) conf.get("readConsistency");
+        String wc = (String) conf.get("writeConsistency");
         if (rc.equals("ALL")) {
             ccl.setDefaultReadConsistencyLevel(HConsistencyLevel.ALL);
         } else if (rc.equals("LOCAL_QUORUM")) {
@@ -76,17 +77,17 @@ public class CassandraManager {
     }
 
     public KeyspaceDefinition getKeyspaceDefinition() {
-        return cluster.describeKeyspace(keyspaceName) ;
+        return cluster.describeKeyspace(keyspaceName);
     }
-    
+
     public void close() throws Exception {
-    	cluster.getConnectionManager().shutdown();
+        cluster.getConnectionManager().shutdown();
     }
 
     private static CassandraManager instance = null;
 
     public static CassandraManager singleton() throws Exception {
-        synchronized(CassandraManager.class) {
+        synchronized (CassandraManager.class) {
             if (CassandraManager.instance == null) {
                 CassandraManager.instance = new CassandraManager();
             }

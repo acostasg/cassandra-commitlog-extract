@@ -5,7 +5,7 @@ import java.util.*;
 import org.apache.log4j.Logger;
 
 public class Monitor implements Runnable {
-	protected static Logger logger = Logger.getLogger(Monitor.class.getName());
+    protected static Logger logger = Logger.getLogger(Monitor.class.getName());
 
     private List<Flow> flows;
     private Thread t;
@@ -31,7 +31,7 @@ public class Monitor implements Runnable {
                     int flowP = flow.checkAndClearLastBlockSize();
                     tables = tables + flow.banner().toString() + ": " + flowP + "    ";
                     processed += flowP;
-                    if (processed>1) logger.info("Status: " + processed + " rows       / " + tables);
+                    if (processed > 1) logger.info("Status: " + processed + " rows       / " + tables);
                 }
             }
         } catch (Throwable t) {

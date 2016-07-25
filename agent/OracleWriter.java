@@ -15,19 +15,19 @@ public abstract class OracleWriter {
     protected String table;
 
     protected List<String> mergeTempTable() {
-    	
-        Map<String,Object> ct = (Map<String,Object>)ConfManager.getTable(table);
-        Map<String,String> cols = (Map<String,String>)ct.get("fixedColumns");
-        Map<String,String> oracleCols = Utils.validOracleColumnNames(cols.keySet());
-        
+
+        Map<String, Object> ct = (Map<String, Object>) ConfManager.getTable(table);
+        Map<String, String> cols = (Map<String, String>) ct.get("fixedColumns");
+        Map<String, String> oracleCols = Utils.validOracleColumnNames(cols.keySet());
+
         List<String> r = new LinkedList<String>();
 
         StringBuilder sb = new StringBuilder("");
-        
+
         //semaforo
         //sb = new StringBuilder("UPDATE sem_tab SET DUMMY='x'");
         //r.add(sb.toString());
-        
+
         //duplicate
         //sb = new StringBuilder("delete \"" + table + "_Temp\" where (\"id\", \"autoUpdatedOn\") not in (select \"id\", max(\"autoUpdatedOn\") from \"" + table + "_Temp\" group by \"id\")\n");
         //r.add(sb.toString());
@@ -39,14 +39,14 @@ public abstract class OracleWriter {
         for (Map.Entry<String, String> kv : cols.entrySet()) {
             String name = kv.getKey();
             name = oracleCols.get(name);
-            sb.append(",\""+ name +"\"");
+            sb.append(",\"" + name + "\"");
         }
 
         sb.append(")\nVALUES (\"" + table + "_Temp\".\"id\"");
         for (Map.Entry<String, String> kv : cols.entrySet()) {
             String name = kv.getKey();
             name = oracleCols.get(name);
-            sb.append(",\"" + table + "_Temp\".\""+name+"\"");
+            sb.append(",\"" + table + "_Temp\".\"" + name + "\"");
         }
 
         sb.append(")\nWHEN MATCHED THEN UPDATE SET ");
@@ -59,28 +59,29 @@ public abstract class OracleWriter {
             }
             String name = kv.getKey();
             name = oracleCols.get(name);
-            sb.append("\"" + table + "\".\""+name+"\"=\"" + table + "_Temp\".\""+name+"\"");
+            sb.append("\"" + table + "\".\"" + name + "\"=\"" + table + "_Temp\".\"" + name + "\"");
         }
 
         r.add(sb.toString());
 
         sb = new StringBuilder("TRUNCATE TABLE \"" + table + "_Temp\"");
         r.add(sb.toString());
-        
+
         //log DEBUG
-        logger.debug("MERGE SQL:"+ r.toString());
+        logger.debug("MERGE SQL:" + r.toString());
 
         return r;
     }
 
     private PreparedStatement fixedPstmt = null;
+
     protected PreparedStatement touchStatement(JDBCWriter w) throws Exception {
         if (fixedPstmt == null) {
             Connection conn = w.getConnection();
 
-            Map<String,Object> ct = (Map<String,Object>)ConfManager.getTable(table);
-            Map<String,String> cols = (Map<String,String>)ct.get("fixedColumns");
-            Map<String,String> oracleCols = Utils.validOracleColumnNames(cols.keySet());
+            Map<String, Object> ct = (Map<String, Object>) ConfManager.getTable(table);
+            Map<String, String> cols = (Map<String, String>) ct.get("fixedColumns");
+            Map<String, String> oracleCols = Utils.validOracleColumnNames(cols.keySet());
 
             List<String> r = new LinkedList<String>();
 
@@ -89,16 +90,16 @@ public abstract class OracleWriter {
             for (Map.Entry<String, String> kv : cols.entrySet()) {
                 String name = kv.getKey();
                 name = oracleCols.get(name);
-                sb.append(",\""+ name +"\"");
+                sb.append(",\"" + name + "\"");
             }
             sb.append(") VALUES (?");
             for (Map.Entry<String, String> kv : cols.entrySet()) {
                 sb.append(",?");
             }
             sb.append(")\n");
-            
+
             //log DEBUG
-            logger.debug("TOUCHSTATMENT SQL:"+ sb.toString());
+            logger.debug("TOUCHSTATMENT SQL:" + sb.toString());
 
             fixedPstmt = conn.prepareStatement(sb.toString());
         }
@@ -111,8 +112,8 @@ public abstract class OracleWriter {
 
         PreparedStatement pstmt = touchStatement(w);
 
-        Map<String,Object> ct = (Map<String,Object>)ConfManager.getTable(table);
-        Map<String,String> cols = (Map<String,String>)ct.get("fixedColumns");
+        Map<String, Object> ct = (Map<String, Object>) ConfManager.getTable(table);
+        Map<String, String> cols = (Map<String, String>) ct.get("fixedColumns");
         //Map<String,String> oracleCols = Utils.validOracleColumnNames(cols.keySet());
 
         List<String> r = new LinkedList<String>();
@@ -120,7 +121,7 @@ public abstract class OracleWriter {
         for (Row row : block.rows) {
             String key = row.key;
 
-            if (filter != null && !filter.isValid(row) && !filter.tableNotFilter(this.table) ) {
+            if (filter != null && !filter.isValid(row) && !filter.tableNotFilter(this.table)) {
                 continue;
             }
 
@@ -151,9 +152,9 @@ public abstract class OracleWriter {
     // insert row by row version
     protected List<String> inserts(RowBlock block, Filter filter) throws Exception {
 
-        Map<String,Object> ct = (Map<String,Object>)ConfManager.getTable(table);
-        Map<String,String> cols = (Map<String,String>)ct.get("fixedColumns");
-        Map<String,String> oracleCols = Utils.validOracleColumnNames(cols.keySet());
+        Map<String, Object> ct = (Map<String, Object>) ConfManager.getTable(table);
+        Map<String, String> cols = (Map<String, String>) ct.get("fixedColumns");
+        Map<String, String> oracleCols = Utils.validOracleColumnNames(cols.keySet());
 
         List<String> r = new LinkedList<String>();
 
@@ -162,7 +163,7 @@ public abstract class OracleWriter {
 
             String key = row.key;
 
-            if (filter != null && !filter.isValid(row) && !filter.tableNotFilter(this.table) ) {
+            if (filter != null && !filter.isValid(row) && !filter.tableNotFilter(this.table)) {
                 continue;
             }
 
@@ -174,7 +175,7 @@ public abstract class OracleWriter {
             for (Map.Entry<String, String> kv : cols.entrySet()) {
                 String name = kv.getKey();
                 name = oracleCols.get(name);
-                sb.append(",\""+ name +"\"");
+                sb.append(",\"" + name + "\"");
             }
 
             sb.append(") VALUES (");
@@ -192,9 +193,9 @@ public abstract class OracleWriter {
             r.add(sb.toString());
         }
 
-        
+
         //log DEBUG
-        logger.debug("INSERT SQL:"+ r.toString());
+        logger.debug("INSERT SQL:" + r.toString());
         return r;
     }
 

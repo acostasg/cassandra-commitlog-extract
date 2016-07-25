@@ -2,6 +2,7 @@ package agent;
 
 
 // https://github.com/rantav/hector
+
 import me.prettyprint.cassandra.serializers.*;
 import me.prettyprint.cassandra.model.*;
 import me.prettyprint.hector.api.*;
@@ -23,41 +24,37 @@ import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 
 
-
-
 import java.nio.ByteBuffer;
 import java.util.List;
 
 // multi purpose reader class used by all cassandra readers: dumpers, ID gatherers, preloaders
-public class CassandraReaderTest{
-	
-	protected static Logger logger = Logger.getLogger(Main.class.getName());
+public class CassandraReaderTest {
 
-	private String table;
+    protected static Logger logger = Logger.getLogger(Main.class.getName());
+
+    private String table;
     private String[] columns;
-	private String lastKey;
-	private int blockSize;
-	private CassandraManager manager;
+    private String lastKey;
+    private int blockSize;
+    private CassandraManager manager;
     private RangeSlicesQuery<String, String, String> rangeSlicesQuery;
     private MultigetSliceQuery<String, String, String> multigetSliceQuery;
-    
-    
-    
 
-	public CassandraReaderTest(String table, String[] columns, int blockSize) throws Exception {
-		this.manager = CassandraManager.singleton();
+
+    public CassandraReaderTest(String table, String[] columns, int blockSize) throws Exception {
+        this.manager = CassandraManager.singleton();
         this.table = table;
         this.columns = columns;
         this.blockSize = blockSize;
         reset();
-	}
+    }
 
     public void reset() throws Exception {
-    	lastKey = "";
-        StringSerializer stringSerializer = StringSerializer.get(); 
+        lastKey = "";
+        StringSerializer stringSerializer = StringSerializer.get();
         Keyspace keyspace = manager.getKeyspace();
 
-        rangeSlicesQuery = HFactory.createRangeSlicesQuery(keyspace, stringSerializer, stringSerializer, stringSerializer);            
+        rangeSlicesQuery = HFactory.createRangeSlicesQuery(keyspace, stringSerializer, stringSerializer, stringSerializer);
         rangeSlicesQuery.setColumnFamily(table);
         rangeSlicesQuery.setKeys(lastKey, "");
         rangeSlicesQuery.setRowCount(blockSize);
@@ -67,7 +64,7 @@ public class CassandraReaderTest{
             rangeSlicesQuery.setRange("", "", false, 100000);
         }
 
-        multigetSliceQuery = HFactory.createMultigetSliceQuery(keyspace, stringSerializer, stringSerializer, stringSerializer);            
+        multigetSliceQuery = HFactory.createMultigetSliceQuery(keyspace, stringSerializer, stringSerializer, stringSerializer);
         multigetSliceQuery.setColumnFamily(table);
         //multigetSliceQuery.setKeys(
         if (columns != null) {
@@ -76,14 +73,14 @@ public class CassandraReaderTest{
             multigetSliceQuery.setRange("", "", false, 100000);
         }
     }
-    
+
 
     private RowBlock processResult(Rows<String, String, String> orderedRows) {
         RowBlock block = new RowBlock(table);
-        
-        Map<String,Object> ct = (Map<String,Object>)ConfManager.getTable(table);
-        Map<String,String> cols = (Map<String,String>)ct.get("fixedColumns");
-        
+
+        Map<String, Object> ct = (Map<String, Object>) ConfManager.getTable(table);
+        Map<String, String> cols = (Map<String, String>) ct.get("fixedColumns");
+
         for (me.prettyprint.hector.api.beans.Row<String, String, String> cassandraRow : orderedRows) {
             String key = cassandraRow.getKey();
             // "" will never be a valid ID in our model, so this is safe for the first iteration too
@@ -95,33 +92,28 @@ public class CassandraReaderTest{
             agent.Row row = new agent.Row(key);
 
             List columns = cassandraRow.getColumnSlice().getColumns();
-            
+
             int n = 0;
-            for (Iterator iterator = columns.iterator(); iterator.hasNext();) {
-                HColumn column = (HColumn)iterator.next();
-                
-                
-                
-                
-                if(cols.get(column.getName().toString()) != null && cols.get(column.getName().toString()).equals("Integer"))
-                {
-                	//Integer value = Character.codePointAt(column.getValue().toString(), 0);
-                	//row.columns.put(column.getName().toString(), value.toString());
-                	
-                	
-                	//if(value.equals(0))
-                	if(key.equals("descuentos/zaragoza/sastre|es"))
-                	{
-                		
-                		
-                		Integer value2 = Character.codePointAt(column.getValue().toString(), 0);
-                		
-                		
-                		
-                		//int codepoint = column.getValue().toString().codePointAt(0);
-                		
-                		//byte[] foobyte = column.getValue().toString().getBytes();
-                		
+            for (Iterator iterator = columns.iterator(); iterator.hasNext(); ) {
+                HColumn column = (HColumn) iterator.next();
+
+
+                if (cols.get(column.getName().toString()) != null && cols.get(column.getName().toString()).equals("Integer")) {
+                    //Integer value = Character.codePointAt(column.getValue().toString(), 0);
+                    //row.columns.put(column.getName().toString(), value.toString());
+
+
+                    //if(value.equals(0))
+                    if (key.equals("descuentos/zaragoza/sastre|es")) {
+
+
+                        Integer value2 = Character.codePointAt(column.getValue().toString(), 0);
+
+
+                        //int codepoint = column.getValue().toString().codePointAt(0);
+
+                        //byte[] foobyte = column.getValue().toString().getBytes();
+
                 		/*
                 		try{
 	                		String s = column.getValue().toString();
@@ -143,12 +135,12 @@ public class CassandraReaderTest{
                 	    strImport = strImport.replaceAll("\uFFFD", "");
                 	    
                 	    System.out.println(strImport);*/
-                		
-                		logger.info(
-                				"key: " + key +
-                    			" - value1: " + column.getValue().toString().length() + 
-                    			" - value2: " + value2
-                    	);
+
+                        logger.info(
+                                "key: " + key +
+                                        " - value1: " + column.getValue().toString().length() +
+                                        " - value2: " + value2
+                        );
                 		
                 		
                 		
@@ -208,9 +200,9 @@ public class CassandraReaderTest{
                 		/*logger.info(
                     			" - value2: " + value2
                     	);*/
-                	}
-                	
-                	//String strImport = "For some reason my double quotes were lost.";
+                    }
+
+                    //String strImport = "For some reason my double quotes were lost.";
                 	
                 	
                 	
@@ -220,16 +212,13 @@ public class CassandraReaderTest{
                 			" - orig: " + column.getValue().toString() +
                 			" - value: " + value.toString()
                 	);*/
-                	
+
+                } else {
+                    //logger.info("ERROR -------> ");
+                    //row.columns.put(column.getName().toString(), column.getValue().toString());
                 }
-                else
-                {
-                	//logger.info("ERROR -------> ");
-                	//row.columns.put(column.getName().toString(), column.getValue().toString());
-                }
-                
-                
-                
+
+
                 //logger.info("TESSSSTTT -------> " + cols.get("sssssaaa"));
                 
                 /*if(cols.get(column.getName().toString()).equals("Integer"))
@@ -243,7 +232,7 @@ public class CassandraReaderTest{
                 	row.columns.put(column.getName().toString(), column.getValue().toString());
                 }*/
                 //row.columns.put(column.getName().toString(), column.getValue().toString());
-                
+
                 n++;
             }
             // skip empty rows
@@ -265,15 +254,9 @@ public class CassandraReaderTest{
 
     public RowBlock readSequential() throws Exception {
         rangeSlicesQuery.setKeys(lastKey, "");
-		OrderedRows<String, String, String> orderedRows = rangeSlicesQuery.execute().get();
+        OrderedRows<String, String, String> orderedRows = rangeSlicesQuery.execute().get();
         return processResult(orderedRows);
     }
-    
-    
-    
-    
 
-
-    
 
 }

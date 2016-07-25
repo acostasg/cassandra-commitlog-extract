@@ -7,10 +7,10 @@ public class OracleWriterFile extends OracleWriter implements RowWriter {
     private FileWriter writer;
 
     public void init(String table) throws Exception {
-    	
+
         this.table = table;
         //this.bulkMode = ConfManager.getGlobal("postgresBulkMode").equals("true");
-        writer = new FileWriter(table, "oracle.sql", 8*1024*1024);
+        writer = new FileWriter(table, "oracle.sql", 8 * 1024 * 1024);
     }
 
     public void write(RowBlock block, Filter filter) throws Exception {
@@ -35,10 +35,10 @@ public class OracleWriterFile extends OracleWriter implements RowWriter {
         writer.write(sb.toString());
     }
 
-	@Override
-	public void execute(long timestamp) throws Exception {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void execute(long timestamp) throws Exception {
+        // TODO Auto-generated method stub
+
+    }
 
 }
