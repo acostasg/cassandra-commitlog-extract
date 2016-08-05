@@ -1,3 +1,6 @@
+#Status code
+[![Code Issues](https://www.quantifiedcode.com/api/v1/project/12062daf49134d9fb201892b3d5aa57a/badge.svg)](https://www.quantifiedcode.com/app/project/12062daf49134d9fb201892b3d5aa57a)
+
 # About
 
 This is a rough, work-in-progress Java tool for parsing the Apache Cassandra commit log for a given period of time in the past, reading the affected rows from Cassandra, and then outputting them in other formats or databases. It includes output drivers for CSV files, PostgreSQL hstore and Oracle 11g.
